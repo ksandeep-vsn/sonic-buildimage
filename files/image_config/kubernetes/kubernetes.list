@@ -1,4 +1,5 @@
 # The following is as recommended by https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 # Whenever an OS update from Debian stretch is done, make sure to find the matching k8s sources list
 #
-deb https://apt.kubernetes.io/ kubernetes-xenial main
+#deb https://apt.kubernetes.io/ kubernetes-xenial main
+deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /

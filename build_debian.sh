@@ -271,9 +271,11 @@ sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install docker-ce=${DOCKER_VERSIO
 
 install_kubernetes () {
     local ver="$1"
+    sudo mkdir -m 755 -p $FILESYSTEM_ROOT/etc/apt/keyrings
+    sudo rm -f $FILESYSTEM_ROOT/etc/apt/keyrings/kubernetes-apt-keyring.gpg
     sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT curl -fsSL \
-        https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
-        sudo LANG=C chroot $FILESYSTEM_ROOT apt-key add -
+           https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo https_proxy=$https_proxy LANG=C \
+           gpg --dearmor -o $FILESYSTEM_ROOT/etc/apt/keyrings/kubernetes-apt-keyring.gpg
     ## Check out the sources list update matches current Debian version
     sudo cp files/image_config/kubernetes/kubernetes.list $FILESYSTEM_ROOT/etc/apt/sources.list.d/
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get update
@@ -281,6 +283,10 @@ install_kubernetes () {
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install kubelet=${ver}
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install kubectl=${ver}
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install kubeadm=${ver}
+    sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT curl -o /tmp/cri-dockerd.deb -fsSL \
+        https://github.com/Mirantis/cri-dockerd/releases/download/v${MASTER_CRI_DOCKERD}/cri-dockerd_${MASTER_CRI_DOCKERD}.3-0.debian-bullseye_amd64.deb
+    sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install -f /tmp/cri-dockerd.deb
+    sudo LANG=C chroot $FILESYSTEM_ROOT rm -f /tmp/cri-dockerd.deb
 }
 
 if [ "$INCLUDE_KUBERNETES" == "y" ]
@@ -299,10 +305,10 @@ then
     install_kubernetes ${MASTER_KUBERNETES_VERSION}
 
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get update
-    sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install hyperv-daemons gnupg xmlstarlet parted netcat
+    sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install hyperv-daemons gnupg xmlstarlet parted netcat-traditional
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y remove gnupg
     sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT curl -o /tmp/cri-dockerd.deb -fsSL \
-        https://github.com/Mirantis/cri-dockerd/releases/download/v${MASTER_CRI_DOCKERD}/cri-dockerd_${MASTER_CRI_DOCKERD}.3-0.debian-${IMAGE_DISTRO}_amd64.deb
+        https://github.com/Mirantis/cri-dockerd/releases/download/v${MASTER_CRI_DOCKERD}/cri-dockerd_${MASTER_CRI_DOCKERD}.3-0.debian-bullseye_amd64.deb
     sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install -f /tmp/cri-dockerd.deb
     sudo LANG=C chroot $FILESYSTEM_ROOT rm -f /tmp/cri-dockerd.deb
 else

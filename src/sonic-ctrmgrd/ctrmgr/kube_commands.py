@@ -326,18 +326,18 @@ def _do_reset(pending_join = False):
 
     _run_command("kubeadm reset -f", 10)
     _run_command("rm -rf {}".format(CNI_DIR))
-    if not pending_join:
-        _run_command("rm -f {}".format(KUBE_ADMIN_CONF))
+    #if not pending_join:
+    #    _run_command("rm -f {}".format(KUBE_ADMIN_CONF))
     _run_command("systemctl stop kubelet")
 
 
 def _do_join(server, port, insecure):
-    KUBEADM_JOIN_CMD = "kubeadm join --discovery-file {} --node-name {}"
+    KUBEADM_JOIN_CMD = "kubeadm join --discovery-file {} --node-name {} --cri-socket=/run/cri-dockerd.sock"
     err = ""
     out = ""
     ret = 0
     try:
-        _gen_cli_kubeconf(server, port, insecure)
+        #_gen_cli_kubeconf(server, port, insecure)
         _do_reset(True)
         _run_command("modprobe br_netfilter")
         # Copy flannel.conf
